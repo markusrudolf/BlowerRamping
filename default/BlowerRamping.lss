@@ -1,0 +1,583 @@
+
+BlowerRamping.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         000002b6  00000000  00000000  00000094  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .data         00000002  00800060  000002b6  0000034a  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  2 .bss          00000016  00800062  00800062  0000034c  2**0
+                  ALLOC
+  3 .debug_aranges 00000020  00000000  00000000  0000034c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_pubnames 000000a3  00000000  00000000  0000036c  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_info   000001d3  00000000  00000000  0000040f  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_abbrev 000000c9  00000000  00000000  000005e2  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_line   0000023c  00000000  00000000  000006ab  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_frame  00000070  00000000  00000000  000008e8  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  9 .debug_str    00000169  00000000  00000000  00000958  2**0
+                  CONTENTS, READONLY, DEBUGGING
+ 10 .debug_loc    000000eb  00000000  00000000  00000ac1  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	10 c0       	rjmp	.+32     	; 0x22 <__ctors_end>
+   2:	2a c0       	rjmp	.+84     	; 0x58 <__bad_interrupt>
+   4:	29 c0       	rjmp	.+82     	; 0x58 <__bad_interrupt>
+   6:	28 c0       	rjmp	.+80     	; 0x58 <__bad_interrupt>
+   8:	27 c0       	rjmp	.+78     	; 0x58 <__bad_interrupt>
+   a:	26 c0       	rjmp	.+76     	; 0x58 <__bad_interrupt>
+   c:	05 c1       	rjmp	.+522    	; 0x218 <__vector_6>
+   e:	24 c0       	rjmp	.+72     	; 0x58 <__bad_interrupt>
+  10:	23 c0       	rjmp	.+70     	; 0x58 <__bad_interrupt>
+  12:	22 c0       	rjmp	.+68     	; 0x58 <__bad_interrupt>
+  14:	21 c0       	rjmp	.+66     	; 0x58 <__bad_interrupt>
+  16:	20 c0       	rjmp	.+64     	; 0x58 <__bad_interrupt>
+  18:	1f c0       	rjmp	.+62     	; 0x58 <__bad_interrupt>
+  1a:	64 c0       	rjmp	.+200    	; 0xe4 <__vector_13>
+  1c:	1d c0       	rjmp	.+58     	; 0x58 <__bad_interrupt>
+  1e:	1c c0       	rjmp	.+56     	; 0x58 <__bad_interrupt>
+  20:	1b c0       	rjmp	.+54     	; 0x58 <__bad_interrupt>
+
+00000022 <__ctors_end>:
+  22:	11 24       	eor	r1, r1
+  24:	1f be       	out	0x3f, r1	; 63
+  26:	cf e5       	ldi	r28, 0x5F	; 95
+  28:	d2 e0       	ldi	r29, 0x02	; 2
+  2a:	de bf       	out	0x3e, r29	; 62
+  2c:	cd bf       	out	0x3d, r28	; 61
+
+0000002e <__do_copy_data>:
+  2e:	10 e0       	ldi	r17, 0x00	; 0
+  30:	a0 e6       	ldi	r26, 0x60	; 96
+  32:	b0 e0       	ldi	r27, 0x00	; 0
+  34:	e6 eb       	ldi	r30, 0xB6	; 182
+  36:	f2 e0       	ldi	r31, 0x02	; 2
+  38:	02 c0       	rjmp	.+4      	; 0x3e <.do_copy_data_start>
+
+0000003a <.do_copy_data_loop>:
+  3a:	05 90       	lpm	r0, Z+
+  3c:	0d 92       	st	X+, r0
+
+0000003e <.do_copy_data_start>:
+  3e:	a2 36       	cpi	r26, 0x62	; 98
+  40:	b1 07       	cpc	r27, r17
+  42:	d9 f7       	brne	.-10     	; 0x3a <.do_copy_data_loop>
+
+00000044 <__do_clear_bss>:
+  44:	10 e0       	ldi	r17, 0x00	; 0
+  46:	a2 e6       	ldi	r26, 0x62	; 98
+  48:	b0 e0       	ldi	r27, 0x00	; 0
+  4a:	01 c0       	rjmp	.+2      	; 0x4e <.do_clear_bss_start>
+
+0000004c <.do_clear_bss_loop>:
+  4c:	1d 92       	st	X+, r1
+
+0000004e <.do_clear_bss_start>:
+  4e:	a8 37       	cpi	r26, 0x78	; 120
+  50:	b1 07       	cpc	r27, r17
+  52:	e1 f7       	brne	.-8      	; 0x4c <.do_clear_bss_loop>
+  54:	44 d0       	rcall	.+136    	; 0xde <main>
+  56:	2d c1       	rjmp	.+602    	; 0x2b2 <_exit>
+
+00000058 <__bad_interrupt>:
+  58:	d3 cf       	rjmp	.-90     	; 0x0 <__vectors>
+
+0000005a <InitHardware>:
+
+void InitHardware(void)
+{
+    // ==== Portpins ====
+    // CPU LED is output
+    DDR_LED_CPU = DDR_LED_CPU | _BV(BIT_LED_CPU);
+  5a:	ea e3       	ldi	r30, 0x3A	; 58
+  5c:	f0 e0       	ldi	r31, 0x00	; 0
+  5e:	80 81       	ld	r24, Z
+  60:	80 61       	ori	r24, 0x10	; 16
+  62:	80 83       	st	Z, r24
+
+    // Status LED is output
+    DDR_LED_STAT = DDR_LED_STAT | _BV(BIT_LED_STAT);
+  64:	80 81       	ld	r24, Z
+  66:	80 62       	ori	r24, 0x20	; 32
+  68:	80 83       	st	Z, r24
+    PORT_LED_STAT = PORT_LED_STAT | _BV(BIT_LED_STAT);  // LED off (active low)
+  6a:	ab e3       	ldi	r26, 0x3B	; 59
+  6c:	b0 e0       	ldi	r27, 0x00	; 0
+  6e:	8c 91       	ld	r24, X
+  70:	80 62       	ori	r24, 0x20	; 32
+  72:	8c 93       	st	X, r24
+
+    // external status is output
+    DDR_LED_EXSTAT = DDR_LED_EXSTAT | _BV(BIT_LED_EXSTAT);
+  74:	80 81       	ld	r24, Z
+  76:	88 60       	ori	r24, 0x08	; 8
+  78:	80 83       	st	Z, r24
+    PORT_LED_EXSTAT = PORT_LED_EXSTAT & ~_BV(BIT_LED_EXSTAT);  // ext. stat off
+  7a:	8c 91       	ld	r24, X
+  7c:	87 7f       	andi	r24, 0xF7	; 247
+  7e:	8c 93       	st	X, r24
+
+    // PWM pin is output
+    DDR_PWM = DDR_PWM | _BV(BIT_PWM);
+  80:	80 81       	ld	r24, Z
+  82:	80 68       	ori	r24, 0x80	; 128
+  84:	80 83       	st	Z, r24
+    PORT_PWM = PORT_PWM & ~_BV(BIT_PWM);    // turn off DAC
+  86:	8c 91       	ld	r24, X
+  88:	8f 77       	andi	r24, 0x7F	; 127
+  8a:	8c 93       	st	X, r24
+    
+    // ==== ADC Stuff below ====
+    // prepare ADC (disconnect digital port)
+    DIDR0 = DIDR0 | _BV(ADC0D);
+  8c:	e1 e2       	ldi	r30, 0x21	; 33
+  8e:	f0 e0       	ldi	r31, 0x00	; 0
+  90:	80 81       	ld	r24, Z
+  92:	81 60       	ori	r24, 0x01	; 1
+  94:	80 83       	st	Z, r24
+
+    // MUX & Ref
+    ADMUX = 0x00;   // Channel0, VCC as reference
+  96:	17 b8       	out	0x07, r1	; 7
+
+    // Auto Trigger Source = free running, left adjust 10bit 
+    ADCSRB = _BV(ADLAR);
+  98:	80 e1       	ldi	r24, 0x10	; 16
+  9a:	83 b9       	out	0x03, r24	; 3
+
+    // Prescaler 1:128, free running mode, enable ADC, 62,5KHz Sample Rate
+    ADCSRA = _BV(ADEN) | _BV(ADSC) | _BV(ADATE) | _BV(ADIE) | _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);
+  9c:	8f ee       	ldi	r24, 0xEF	; 239
+  9e:	86 b9       	out	0x06, r24	; 6
+
+    // ==== PWM Output on OC0B (PA7) ====
+    TCCR0A = (1<<COM0B1) | (1<<WGM01) | (1<<WGM00); // 0xA3 Mode 3 Fast-PWM TOP=0xFF
+  a0:	83 e2       	ldi	r24, 0x23	; 35
+  a2:	80 bf       	out	0x30, r24	; 48
+    TCCR0B = (1<<CS00);  // no prescaler -> 31250 Hz PWM frequency
+  a4:	81 e0       	ldi	r24, 0x01	; 1
+  a6:	83 bf       	out	0x33, r24	; 51
+
+    OCR0B = 0x00;
+  a8:	1c be       	out	0x3c, r1	; 60
+
+};
+  aa:	08 95       	ret
+
+000000ac <InitTimer1CompareAInt>:
+
+void InitTimer1CompareAInt(void)
+{
+    TIFR0 |= (1<<OCF1A);                // Interrupt Request loeschen
+  ac:	e8 e5       	ldi	r30, 0x58	; 88
+  ae:	f0 e0       	ldi	r31, 0x00	; 0
+  b0:	80 81       	ld	r24, Z
+  b2:	82 60       	ori	r24, 0x02	; 2
+  b4:	80 83       	st	Z, r24
+    TIMSK1 |= (1<<OCIE1A);              // Enable Output Compare A Interrupt
+  b6:	ec e2       	ldi	r30, 0x2C	; 44
+  b8:	f0 e0       	ldi	r31, 0x00	; 0
+  ba:	80 81       	ld	r24, Z
+  bc:	82 60       	ori	r24, 0x02	; 2
+  be:	80 83       	st	Z, r24
+
+    OCR1AH = 124 >> 8;                // CompareTime (16bit) 
+  c0:	1b bc       	out	0x2b, r1	; 43
+    OCR1AL = 124 & 0xFF;              // CompareTime (16bit) 
+  c2:	8c e7       	ldi	r24, 0x7C	; 124
+  c4:	8a bd       	out	0x2a, r24	; 42
+
+    TCNT1 = 0;
+  c6:	1d bc       	out	0x2d, r1	; 45
+  c8:	1c bc       	out	0x2c, r1	; 44
+    TCCR1B   |= 1 << WGM12;             // CTC Mode 4 (16bit CTC)
+  ca:	ee e4       	ldi	r30, 0x4E	; 78
+  cc:	f0 e0       	ldi	r31, 0x00	; 0
+  ce:	80 81       	ld	r24, Z
+  d0:	88 60       	ori	r24, 0x08	; 8
+  d2:	80 83       	st	Z, r24
+
+    TCCR1B   |= (1<<CS01) | (1<<CS00);  // 64 prescaler, Timer0 Start
+  d4:	80 81       	ld	r24, Z
+  d6:	83 60       	ori	r24, 0x03	; 3
+  d8:	80 83       	st	Z, r24
+    sei();
+  da:	78 94       	sei
+}
+  dc:	08 95       	ret
+
+000000de <main>:
+volatile unsigned char aRunningAverageBuffer[MAX_ADC_HIST];
+volatile unsigned char ucADCMeanValue;
+
+int main()
+{
+    InitHardware();
+  de:	bd df       	rcall	.-134    	; 0x5a <InitHardware>
+    InitTimer1CompareAInt();
+  e0:	e5 df       	rcall	.-54     	; 0xac <InitTimer1CompareAInt>
+  e2:	ff cf       	rjmp	.-2      	; 0xe2 <main+0x4>
+
+000000e4 <__vector_13>:
+    DebounceKeys();
+}
+
+// ADC interrupt
+ISR(ADC_vect)
+{
+  e4:	1f 92       	push	r1
+  e6:	0f 92       	push	r0
+  e8:	0f b6       	in	r0, 0x3f	; 63
+  ea:	0f 92       	push	r0
+  ec:	11 24       	eor	r1, r1
+  ee:	2f 93       	push	r18
+  f0:	3f 93       	push	r19
+  f2:	4f 93       	push	r20
+  f4:	5f 93       	push	r21
+  f6:	6f 93       	push	r22
+  f8:	7f 93       	push	r23
+  fa:	8f 93       	push	r24
+  fc:	9f 93       	push	r25
+  fe:	af 93       	push	r26
+ 100:	bf 93       	push	r27
+ 102:	ef 93       	push	r30
+ 104:	ff 93       	push	r31
+ 106:	df 93       	push	r29
+ 108:	cf 93       	push	r28
+ 10a:	0f 92       	push	r0
+ 10c:	cd b7       	in	r28, 0x3d	; 61
+ 10e:	de b7       	in	r29, 0x3e	; 62
+    unsigned int uiLoop;
+    unsigned int uiSumm;
+
+    // read sample from ADH
+    // we only have 8bit PWM, so 8bit ADC is sufficient
+    volatile unsigned char ucCurrentSample = ADCH;
+ 110:	85 b1       	in	r24, 0x05	; 5
+ 112:	89 83       	std	Y+1, r24	; 0x01
+ 114:	41 e0       	ldi	r20, 0x01	; 1
+ 116:	50 e0       	ldi	r21, 0x00	; 0
+    // value in Index 0 gets lost, MAX_ADC_HIST-1 gets free for
+    // current sample
+
+    for(uiLoop = 1; uiLoop < MAX_ADC_HIST; uiLoop++)
+    {
+        aRunningAverageBuffer[uiLoop-1] = aRunningAverageBuffer[uiLoop];
+ 118:	63 e6       	ldi	r22, 0x63	; 99
+ 11a:	70 e0       	ldi	r23, 0x00	; 0
+    unsigned int uiLoop;
+    unsigned int uiSumm;
+
+    // read sample from ADH
+    // we only have 8bit PWM, so 8bit ADC is sufficient
+    volatile unsigned char ucCurrentSample = ADCH;
+ 11c:	ca 01       	movw	r24, r20
+ 11e:	01 97       	sbiw	r24, 0x01	; 1
+    // value in Index 0 gets lost, MAX_ADC_HIST-1 gets free for
+    // current sample
+
+    for(uiLoop = 1; uiLoop < MAX_ADC_HIST; uiLoop++)
+    {
+        aRunningAverageBuffer[uiLoop-1] = aRunningAverageBuffer[uiLoop];
+ 120:	fb 01       	movw	r30, r22
+ 122:	e4 0f       	add	r30, r20
+ 124:	f5 1f       	adc	r31, r21
+ 126:	20 81       	ld	r18, Z
+ 128:	fb 01       	movw	r30, r22
+ 12a:	e8 0f       	add	r30, r24
+ 12c:	f9 1f       	adc	r31, r25
+ 12e:	20 83       	st	Z, r18
+
+    // move all values one index to the front
+    // value in Index 0 gets lost, MAX_ADC_HIST-1 gets free for
+    // current sample
+
+    for(uiLoop = 1; uiLoop < MAX_ADC_HIST; uiLoop++)
+ 130:	4f 5f       	subi	r20, 0xFF	; 255
+ 132:	5f 4f       	sbci	r21, 0xFF	; 255
+ 134:	44 31       	cpi	r20, 0x14	; 20
+ 136:	51 05       	cpc	r21, r1
+ 138:	89 f7       	brne	.-30     	; 0x11c <__vector_13+0x38>
+    {
+        aRunningAverageBuffer[uiLoop-1] = aRunningAverageBuffer[uiLoop];
+    };
+
+    // current sample on last index
+    aRunningAverageBuffer[(MAX_ADC_HIST-1)] = ucCurrentSample;
+ 13a:	89 81       	ldd	r24, Y+1	; 0x01
+ 13c:	80 93 76 00 	sts	0x0076, r24
+ 140:	20 e0       	ldi	r18, 0x00	; 0
+ 142:	30 e0       	ldi	r19, 0x00	; 0
+ 144:	40 e0       	ldi	r20, 0x00	; 0
+ 146:	50 e0       	ldi	r21, 0x00	; 0
+    uiSumm = 0;
+    
+    // add up all data
+    for(uiLoop=0;uiLoop<MAX_ADC_HIST; uiLoop++)
+    {
+        uiSumm = uiSumm + aRunningAverageBuffer[uiLoop];
+ 148:	63 e6       	ldi	r22, 0x63	; 99
+ 14a:	70 e0       	ldi	r23, 0x00	; 0
+ 14c:	fb 01       	movw	r30, r22
+ 14e:	e2 0f       	add	r30, r18
+ 150:	f3 1f       	adc	r31, r19
+ 152:	80 81       	ld	r24, Z
+ 154:	48 0f       	add	r20, r24
+ 156:	51 1d       	adc	r21, r1
+    aRunningAverageBuffer[(MAX_ADC_HIST-1)] = ucCurrentSample;
+
+    uiSumm = 0;
+    
+    // add up all data
+    for(uiLoop=0;uiLoop<MAX_ADC_HIST; uiLoop++)
+ 158:	2f 5f       	subi	r18, 0xFF	; 255
+ 15a:	3f 4f       	sbci	r19, 0xFF	; 255
+ 15c:	24 31       	cpi	r18, 0x14	; 20
+ 15e:	31 05       	cpc	r19, r1
+ 160:	a9 f7       	brne	.-22     	; 0x14c <__vector_13+0x68>
+    {
+        uiSumm = uiSumm + aRunningAverageBuffer[uiLoop];
+    };
+
+    // update average
+    ucADCMeanValue = (unsigned char)(uiSumm / MAX_ADC_HIST);
+ 162:	ca 01       	movw	r24, r20
+ 164:	64 e1       	ldi	r22, 0x14	; 20
+ 166:	70 e0       	ldi	r23, 0x00	; 0
+ 168:	90 d0       	rcall	.+288    	; 0x28a <__udivmodhi4>
+ 16a:	60 93 77 00 	sts	0x0077, r22
+    OCR0B = ucADCMeanValue;
+ 16e:	80 91 77 00 	lds	r24, 0x0077
+ 172:	8c bf       	out	0x3c, r24	; 60
+        
+}
+ 174:	0f 90       	pop	r0
+ 176:	cf 91       	pop	r28
+ 178:	df 91       	pop	r29
+ 17a:	ff 91       	pop	r31
+ 17c:	ef 91       	pop	r30
+ 17e:	bf 91       	pop	r27
+ 180:	af 91       	pop	r26
+ 182:	9f 91       	pop	r25
+ 184:	8f 91       	pop	r24
+ 186:	7f 91       	pop	r23
+ 188:	6f 91       	pop	r22
+ 18a:	5f 91       	pop	r21
+ 18c:	4f 91       	pop	r20
+ 18e:	3f 91       	pop	r19
+ 190:	2f 91       	pop	r18
+ 192:	0f 90       	pop	r0
+ 194:	0f be       	out	0x3f, r0	; 63
+ 196:	0f 90       	pop	r0
+ 198:	1f 90       	pop	r1
+ 19a:	18 95       	reti
+
+0000019c <DebounceKeys>:
+
+#define MAX_CHECKS 3 // change according to bouncing behavior of switches    
+
+// Keyboard debouncing 
+void DebounceKeys(void)
+{
+ 19c:	df 93       	push	r29
+ 19e:	cf 93       	push	r28
+ 1a0:	00 d0       	rcall	.+0      	; 0x1a2 <DebounceKeys+0x6>
+ 1a2:	00 d0       	rcall	.+0      	; 0x1a4 <DebounceKeys+0x8>
+ 1a4:	00 d0       	rcall	.+0      	; 0x1a6 <DebounceKeys+0xa>
+ 1a6:	cd b7       	in	r28, 0x3d	; 61
+ 1a8:	de b7       	in	r29, 0x3e	; 62
+    volatile unsigned char  aState[MAX_CHECKS]; // array that maintains bounce status
+
+    // preserve this between calls
+    static unsigned char    ucIndex=0;          // Pointer into aState[]
+
+	ucOldState = ucDebouncedState;              // save old value to check if something has changed
+ 1aa:	89 81       	ldd	r24, Y+1	; 0x01
+ 1ac:	8a 83       	std	Y+2, r24	; 0x02
+
+    // read hardware here
+	aState[ucIndex] = ~(PINA & _BV(BIT_EN_INP));// we only process a single key (low active)
+ 1ae:	20 91 62 00 	lds	r18, 0x0062
+ 1b2:	89 b3       	in	r24, 0x19	; 25
+ 1b4:	82 70       	andi	r24, 0x02	; 2
+ 1b6:	80 95       	com	r24
+ 1b8:	fe 01       	movw	r30, r28
+ 1ba:	34 96       	adiw	r30, 0x04	; 4
+ 1bc:	e2 0f       	add	r30, r18
+ 1be:	f1 1d       	adc	r31, r1
+ 1c0:	80 83       	st	Z, r24
+	++ucIndex;
+ 1c2:	2f 5f       	subi	r18, 0xFF	; 255
+ 1c4:	20 93 62 00 	sts	0x0062, r18
+
+	ucTempState = 0xFF;
+ 1c8:	8f ef       	ldi	r24, 0xFF	; 255
+ 1ca:	8b 83       	std	Y+3, r24	; 0x03
+
+    // iterate through the last states and see if each
+    // bit of each state is 1
+	for(uiLoop=0; uiLoop < (MAX_CHECKS-1); uiLoop++)
+		ucTempState = ucTempState & aState[uiLoop];
+ 1cc:	9c 81       	ldd	r25, Y+4	; 0x04
+ 1ce:	8b 81       	ldd	r24, Y+3	; 0x03
+ 1d0:	89 23       	and	r24, r25
+ 1d2:	8b 83       	std	Y+3, r24	; 0x03
+ 1d4:	8d 81       	ldd	r24, Y+5	; 0x05
+ 1d6:	9b 81       	ldd	r25, Y+3	; 0x03
+ 1d8:	89 23       	and	r24, r25
+ 1da:	8b 83       	std	Y+3, r24	; 0x03
+
+	ucDebouncedState = ucTempState;
+ 1dc:	8b 81       	ldd	r24, Y+3	; 0x03
+ 1de:	89 83       	std	Y+1, r24	; 0x01
+
+    // wrap around pointer 
+	if(ucIndex >= MAX_CHECKS)
+ 1e0:	23 30       	cpi	r18, 0x03	; 3
+ 1e2:	10 f0       	brcs	.+4      	; 0x1e8 <DebounceKeys+0x4c>
+		ucIndex=0;
+ 1e4:	10 92 62 00 	sts	0x0062, r1
+
+    // check if external enable input changed
+    if((ucOldState & _BV(BIT_EN_INP)) != (ucDebouncedState & _BV(BIT_EN_INP)))
+ 1e8:	2a 81       	ldd	r18, Y+2	; 0x02
+ 1ea:	89 81       	ldd	r24, Y+1	; 0x01
+ 1ec:	90 e0       	ldi	r25, 0x00	; 0
+ 1ee:	30 e0       	ldi	r19, 0x00	; 0
+ 1f0:	82 27       	eor	r24, r18
+ 1f2:	93 27       	eor	r25, r19
+ 1f4:	81 ff       	sbrs	r24, 1
+ 1f6:	07 c0       	rjmp	.+14     	; 0x206 <DebounceKeys+0x6a>
+    {
+        // check if it was a low to high transition
+        if(ucDebouncedState & _BV(BIT_EN_INP))
+ 1f8:	89 81       	ldd	r24, Y+1	; 0x01
+ 1fa:	81 ff       	sbrs	r24, 1
+ 1fc:	04 c0       	rjmp	.+8      	; 0x206 <DebounceKeys+0x6a>
+        {
+            PORT_LED_EXSTAT = PIN_LED_EXSTAT ^ _BV(BIT_LED_EXSTAT);  // ext. stat off            
+ 1fe:	89 b3       	in	r24, 0x19	; 25
+ 200:	98 e0       	ldi	r25, 0x08	; 8
+ 202:	89 27       	eor	r24, r25
+ 204:	8b bb       	out	0x1b, r24	; 27
+        };
+    };
+}
+ 206:	26 96       	adiw	r28, 0x06	; 6
+ 208:	0f b6       	in	r0, 0x3f	; 63
+ 20a:	f8 94       	cli
+ 20c:	de bf       	out	0x3e, r29	; 62
+ 20e:	0f be       	out	0x3f, r0	; 63
+ 210:	cd bf       	out	0x3d, r28	; 61
+ 212:	cf 91       	pop	r28
+ 214:	df 91       	pop	r29
+ 216:	08 95       	ret
+
+00000218 <__vector_6>:
+}
+
+ 
+// time management handler, called every 1ms via CTC mode interrupt
+ISR(TIM1_COMPA_vect)
+{
+ 218:	1f 92       	push	r1
+ 21a:	0f 92       	push	r0
+ 21c:	0f b6       	in	r0, 0x3f	; 63
+ 21e:	0f 92       	push	r0
+ 220:	11 24       	eor	r1, r1
+ 222:	2f 93       	push	r18
+ 224:	3f 93       	push	r19
+ 226:	4f 93       	push	r20
+ 228:	5f 93       	push	r21
+ 22a:	6f 93       	push	r22
+ 22c:	7f 93       	push	r23
+ 22e:	8f 93       	push	r24
+ 230:	9f 93       	push	r25
+ 232:	af 93       	push	r26
+ 234:	bf 93       	push	r27
+ 236:	ef 93       	push	r30
+ 238:	ff 93       	push	r31
+    static unsigned int uiBlinkDelay = 500;
+
+    if(!(uiBlinkDelay--))
+ 23a:	20 91 60 00 	lds	r18, 0x0060
+ 23e:	30 91 61 00 	lds	r19, 0x0061
+ 242:	c9 01       	movw	r24, r18
+ 244:	01 97       	sbiw	r24, 0x01	; 1
+ 246:	90 93 61 00 	sts	0x0061, r25
+ 24a:	80 93 60 00 	sts	0x0060, r24
+ 24e:	23 2b       	or	r18, r19
+ 250:	51 f4       	brne	.+20     	; 0x266 <__stack+0x7>
+    {
+        PORT_LED_CPU = PIN_LED_CPU ^ _BV(BIT_LED_CPU);
+ 252:	89 b3       	in	r24, 0x19	; 25
+ 254:	90 e1       	ldi	r25, 0x10	; 16
+ 256:	89 27       	eor	r24, r25
+ 258:	8b bb       	out	0x1b, r24	; 27
+        uiBlinkDelay = 500;
+ 25a:	84 ef       	ldi	r24, 0xF4	; 244
+ 25c:	91 e0       	ldi	r25, 0x01	; 1
+ 25e:	90 93 61 00 	sts	0x0061, r25
+ 262:	80 93 60 00 	sts	0x0060, r24
+    };
+    DebounceKeys();
+ 266:	9a df       	rcall	.-204    	; 0x19c <DebounceKeys>
+}
+ 268:	ff 91       	pop	r31
+ 26a:	ef 91       	pop	r30
+ 26c:	bf 91       	pop	r27
+ 26e:	af 91       	pop	r26
+ 270:	9f 91       	pop	r25
+ 272:	8f 91       	pop	r24
+ 274:	7f 91       	pop	r23
+ 276:	6f 91       	pop	r22
+ 278:	5f 91       	pop	r21
+ 27a:	4f 91       	pop	r20
+ 27c:	3f 91       	pop	r19
+ 27e:	2f 91       	pop	r18
+ 280:	0f 90       	pop	r0
+ 282:	0f be       	out	0x3f, r0	; 63
+ 284:	0f 90       	pop	r0
+ 286:	1f 90       	pop	r1
+ 288:	18 95       	reti
+
+0000028a <__udivmodhi4>:
+ 28a:	aa 1b       	sub	r26, r26
+ 28c:	bb 1b       	sub	r27, r27
+ 28e:	51 e1       	ldi	r21, 0x11	; 17
+ 290:	07 c0       	rjmp	.+14     	; 0x2a0 <__udivmodhi4_ep>
+
+00000292 <__udivmodhi4_loop>:
+ 292:	aa 1f       	adc	r26, r26
+ 294:	bb 1f       	adc	r27, r27
+ 296:	a6 17       	cp	r26, r22
+ 298:	b7 07       	cpc	r27, r23
+ 29a:	10 f0       	brcs	.+4      	; 0x2a0 <__udivmodhi4_ep>
+ 29c:	a6 1b       	sub	r26, r22
+ 29e:	b7 0b       	sbc	r27, r23
+
+000002a0 <__udivmodhi4_ep>:
+ 2a0:	88 1f       	adc	r24, r24
+ 2a2:	99 1f       	adc	r25, r25
+ 2a4:	5a 95       	dec	r21
+ 2a6:	a9 f7       	brne	.-22     	; 0x292 <__udivmodhi4_loop>
+ 2a8:	80 95       	com	r24
+ 2aa:	90 95       	com	r25
+ 2ac:	bc 01       	movw	r22, r24
+ 2ae:	cd 01       	movw	r24, r26
+ 2b0:	08 95       	ret
+
+000002b2 <_exit>:
+ 2b2:	f8 94       	cli
+
+000002b4 <__stop_program>:
+ 2b4:	ff cf       	rjmp	.-2      	; 0x2b4 <__stop_program>
