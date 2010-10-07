@@ -41,6 +41,7 @@
 
 // defines
 #define MAX_ADC_HIST    (20)        // running average over n samples
+#define MAX_KEY_CHECKS	(5)			// number of equal key samples needed to count a key as debounced
 
 // prototypes
 extern void InitHardware(void);

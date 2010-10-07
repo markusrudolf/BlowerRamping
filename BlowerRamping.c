@@ -3,8 +3,17 @@
 
 #include "BlowerRamping.h"
 
+// globals for ADC averaging
 volatile unsigned char aRunningAverageBuffer[MAX_ADC_HIST];
 volatile unsigned char ucADCMeanValue;
+
+// globals for key input
+volatile unsigned char aKeyState[MAX_KEY_CHECKS];	// array that maintains bounce status
+volatile unsigned char ucDebounceIndex;          	// pointer into aKeyState[]
+volatile unsigned char ucDebouncedState;			// debounced state of the switch
+volatile unsigned char ucOldDebouncedState;			// old state of the switch
+
+
 
 int main()
 {
@@ -117,41 +126,34 @@ ISR(ADC_vect)
         
 }
 
-#define MAX_CHECKS 3 // change according to bouncing behavior of switches    
 
 // Keyboard debouncing 
 void DebounceKeys(void)
 {
 	unsigned int uiLoop;
-    volatile unsigned char  ucDebouncedState;   // Debounced state of the switch
-    volatile unsigned char  ucOldState;         // old state of the switch
-    volatile unsigned char  ucTempState;        // needed for array checking
-    volatile unsigned char  aState[MAX_CHECKS]; // array that maintains bounce status
+    volatile unsigned char  ucTempState;		// needed for array checking
 
-    // preserve this between calls
-    static unsigned char    ucIndex=0;          // Pointer into aState[]
-
-	ucOldState = ucDebouncedState;              // save old value to check if something has changed
+	ucOldDebouncedState = ucDebouncedState;		// save old value to check if something has changed
 
     // read hardware here
-	aState[ucIndex] = ~(PINA & _BV(BIT_EN_INP));// we only process a single key (low active)
-	++ucIndex;
+	aKeyState[ucDebounceIndex] = (~(PINA & _BV(BIT_EN_INP))) & _BV(BIT_EN_INP);// we only process a single key (low active), mask rest
+	++ucDebounceIndex;
 
 	ucTempState = 0xFF;
 
     // iterate through the last states and see if each
     // bit of each state is 1
-	for(uiLoop=0; uiLoop < (MAX_CHECKS-1); uiLoop++)
-		ucTempState = ucTempState & aState[uiLoop];
+	for(uiLoop=0; uiLoop < (MAX_KEY_CHECKS-1); uiLoop++)
+		ucTempState = ucTempState & aKeyState[uiLoop];
 
 	ucDebouncedState = ucTempState;
 
     // wrap around pointer 
-	if(ucIndex >= MAX_CHECKS)
-		ucIndex=0;
+	if(ucDebounceIndex >= MAX_KEY_CHECKS)
+		ucDebounceIndex=0;
 
     // check if external enable input changed
-    if((ucOldState & _BV(BIT_EN_INP)) != (ucDebouncedState & _BV(BIT_EN_INP)))
+    if((ucOldDebouncedState & _BV(BIT_EN_INP)) != (ucDebouncedState & _BV(BIT_EN_INP)))
     {
         // check if it was a low to high transition
         if(ucDebouncedState & _BV(BIT_EN_INP))
