@@ -1,3 +1,7 @@
+/*
+
+*/
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -13,13 +17,33 @@ volatile unsigned char ucDebounceIndex;          	// pointer into aKeyState[]
 volatile unsigned char ucDebouncedState;			// debounced state of the switch
 volatile unsigned char ucOldDebouncedState;			// old state of the switch
 
+// globals for ramping
+volatile unsigned char ucTargetSpeed;
+volatile unsigned char ucCurrentSpeed;
+volatile unsigned long long ullRampingValue;
 
+// error indicator (morse code)
+volatile unsigned char ucErrorCode;
+
+// state enums
+eStateType eRampingState;
+eMorseStateType eMorseState;
+
+// main loop
 
 int main()
 {
     InitHardware();
     InitTimer1CompareAInt();
-    while(1);
+
+    eRampingState = eRampedDown;
+    eMorseState = eMorsePause;
+
+    // main loop
+    while(1)
+    {
+        // 
+    };
 };
 
 void InitHardware(void)
@@ -39,6 +63,12 @@ void InitHardware(void)
     // PWM pin is output
     DDR_PWM = DDR_PWM | _BV(BIT_PWM);
     PORT_PWM = PORT_PWM & ~_BV(BIT_PWM);    // turn off DAC
+
+    // ERROR Pins on PB are input;
+    DDRB = 0x00;
+
+    // enable Pullups on PB0 to PB2
+    PORTB = 0x07;
     
     // ==== ADC Stuff below ====
     // prepare ADC (disconnect digital port)
@@ -76,16 +106,117 @@ void InitTimer1CompareAInt(void)
     sei();
 }
 
- 
+// ================================================================ 
 // time management handler, called every 1ms via CTC mode interrupt
+// ================================================================ 
+
 ISR(TIM1_COMPA_vect)
 {
     static unsigned int uiBlinkDelay = 500;
+    static unsigned int uiMorseDelay = MORSE_SYNC_PAUSE;
+    static unsigned char ucCode = 0;
 
+    // read in error pins from SWM controller
+    // we need only the lower 3 bits
+    ucErrorCode = PINB & 0x07; 
+        
+    // ==== CPU LED blink code below ====
     if(!(uiBlinkDelay--))
     {
         PORT_LED_CPU = PIN_LED_CPU ^ _BV(BIT_LED_CPU);
         uiBlinkDelay = 500;
+    };
+
+    // ==========================
+    // ==== morse code below ====
+    // ==========================
+
+    // LED long off to "sync user"
+    if(eMorseState == eMorsePause)
+    {
+        PORT_LED_STAT = PORT_LED_STAT | _BV(BIT_LED_STAT);          // switch off LED (active low)
+        PORT_LED_EXSTAT = PORT_LED_EXSTAT & ~(_BV(BIT_LED_EXSTAT)); // ext. stat off 
+
+        // check if delay has expired
+        if(!(uiMorseDelay--))
+        {
+            uiMorseDelay = MORSE_LONG_BIT;
+            eMorseState = eMorseStart;
+        };
+    };
+
+    // start bit (longer than the morse code)
+    if(eMorseState == eMorseStart)
+    {
+        // switch on LEDs
+        PORT_LED_STAT = PORT_LED_STAT & ~(_BV(BIT_LED_STAT));   // switch on LED (active low)
+        PORT_LED_EXSTAT = PORT_LED_EXSTAT | _BV(BIT_LED_EXSTAT);// ext. stat on 
+
+        // check if delay has expired
+        if(!(uiMorseDelay--))
+        {
+            uiMorseDelay = MORSE_SYNC_PAUSE;// load delay counter
+            eMorseState = eMorseDelay;      // next state
+            ucCode = ucErrorCode;           // prepare static error counter for countdown
+        };
+    };
+
+    if(eMorseState == eMorseDelay)
+    {
+        // LEDs off
+        PORT_LED_STAT = PORT_LED_STAT | _BV(BIT_LED_STAT);          // switch off LED (active low)
+        PORT_LED_EXSTAT = PORT_LED_EXSTAT & ~(_BV(BIT_LED_EXSTAT)); // ext. stat off 
+
+        // check if delay has expired
+        if(!(uiMorseDelay--))
+        {
+            uiMorseDelay = MORSE_SHORT_BIT;     // load delay counter
+            eMorseState = eMorseCodeOutputOn;   // next state
+            ucCode = ucErrorCode;               // prepare static error counter for countdown
+        };
+    };
+
+    if((eMorseState == eMorseCodeOutputOn) || (eMorseState == eMorseCodeOutputOff))
+    {
+        // check if error code is != 0
+        if(ucCode)
+        {
+            // check if we are in the "ON" Phase of morse
+            if(eMorseState == eMorseCodeOutputOn)
+            {
+                // switch on LEDs
+                PORT_LED_STAT = PORT_LED_STAT & ~(_BV(BIT_LED_STAT));   // switch on LED (active low)
+                PORT_LED_EXSTAT = PORT_LED_EXSTAT | _BV(BIT_LED_EXSTAT);// ext. stat on 
+        
+                // check if delay has expired
+                if(!(uiMorseDelay--))
+                {
+                    uiMorseDelay = MORSE_BIT_PAUSE;
+                    eMorseState = eMorseCodeOutputOff;
+                };
+            };
+            
+            // check if we are in the "OFF" phase of morse
+            if(eMorseState == eMorseCodeOutputOff)
+            {
+                // switch off LEDs
+                PORT_LED_STAT = PORT_LED_STAT | _BV(BIT_LED_STAT);          // switch off LED (active low)
+                PORT_LED_EXSTAT = PORT_LED_EXSTAT & ~(_BV(BIT_LED_EXSTAT)); // ext. stat off 
+        
+                // check if delay has expired
+                if(!(uiMorseDelay--))
+                {
+                    uiMorseDelay = MORSE_SHORT_BIT;
+                    eMorseState = eMorseCodeOutputOn;
+                    ucCode--;
+                };
+            };
+        }
+        else
+        {
+                uiMorseDelay = MORSE_SYNC_PAUSE;
+                eMorseState = eMorsePause;
+        };
     };
     DebounceKeys();
 }
@@ -158,7 +289,7 @@ void DebounceKeys(void)
         // check if it was a low to high transition
         if(ucDebouncedState & _BV(BIT_EN_INP))
         {
-            PORT_LED_EXSTAT = PIN_LED_EXSTAT ^ _BV(BIT_LED_EXSTAT);  // ext. stat off            
+//            PORT_LED_EXSTAT = PORT_LED_EXSTAT ^ _BV(BIT_LED_EXSTAT);  // ext. stat off            
         };
     };
 }

@@ -17,9 +17,15 @@ aRunningAverageBuffer
 ucOldDebouncedState
                     0x1               BlowerRamping.o
 ucDebouncedState    0x1               BlowerRamping.o
+eRampingState       0x1               BlowerRamping.o
 ucDebounceIndex     0x1               BlowerRamping.o
+eMorseState         0x1               BlowerRamping.o
+ucTargetSpeed       0x1               BlowerRamping.o
 ucADCMeanValue      0x1               BlowerRamping.o
+ucCurrentSpeed      0x1               BlowerRamping.o
+ullRampingValue     0x8               BlowerRamping.o
 aKeyState           0x5               BlowerRamping.o
+ucErrorCode         0x1               BlowerRamping.o
 
 Memory Configuration
 
@@ -130,7 +136,7 @@ LOAD c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4
 .rela.plt
  *(.rela.plt)
 
-.text           0x00000000      0x2c8
+.text           0x00000000      0x4b6
  *(.vectors)
  .vectors       0x00000000       0x22 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/../../../../avr/lib/avr25/crttn84.o
                 0x00000000                __vector_default
@@ -201,29 +207,29 @@ LOAD c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4
                 0x00000058                __vector_14
                 0x00000058                __vector_10
                 0x00000058                __vector_16
- .text          0x0000005a      0x242 BlowerRamping.o
+ .text          0x0000005a      0x430 BlowerRamping.o
                 0x0000005a                InitHardware
-                0x000000ac                InitTimer1CompareAInt
-                0x000000de                main
-                0x000000e4                __vector_13
-                0x00000196                DebounceKeys
-                0x00000228                __vector_6
- .text          0x0000029c        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_udivmodhi4.o)
- .text          0x0000029c        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
- .text          0x0000029c        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_copy_data.o)
- .text          0x0000029c        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_clear_bss.o)
-                0x0000029c                . = ALIGN (0x2)
+                0x000000b2                InitTimer1CompareAInt
+                0x000000e4                main
+                0x000000f2                __vector_13
+                0x000001a4                DebounceKeys
+                0x0000022a                __vector_6
+ .text          0x0000048a        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_udivmodhi4.o)
+ .text          0x0000048a        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
+ .text          0x0000048a        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_copy_data.o)
+ .text          0x0000048a        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_clear_bss.o)
+                0x0000048a                . = ALIGN (0x2)
  *(.text.*)
- .text.libgcc   0x0000029c       0x28 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_udivmodhi4.o)
-                0x0000029c                __udivmodhi4
- .text.libgcc   0x000002c4        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
- .text.libgcc   0x000002c4        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_copy_data.o)
- .text.libgcc   0x000002c4        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_clear_bss.o)
-                0x000002c4                . = ALIGN (0x2)
+ .text.libgcc   0x0000048a       0x28 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_udivmodhi4.o)
+                0x0000048a                __udivmodhi4
+ .text.libgcc   0x000004b2        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
+ .text.libgcc   0x000004b2        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_copy_data.o)
+ .text.libgcc   0x000004b2        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_clear_bss.o)
+                0x000004b2                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000002c4        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
-                0x000002c4                _exit
-                0x000002c4                exit
+ .fini9         0x000004b2        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
+                0x000004b2                _exit
+                0x000004b2                exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -242,55 +248,61 @@ LOAD c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x000002c4        0x4 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
+ .fini0         0x000004b2        0x4 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
  *(.fini0)
-                0x000002c8                _etext = .
+                0x000004b6                _etext = .
 
-.data           0x00800060        0x2 load address 0x000002c8
+.data           0x00800060        0x4 load address 0x000004b6
                 0x00800060                PROVIDE (__data_start, .)
  *(.data)
  .data          0x00800060        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/../../../../avr/lib/avr25/crttn84.o
- .data          0x00800060        0x2 BlowerRamping.o
- .data          0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_udivmodhi4.o)
- .data          0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
- .data          0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_copy_data.o)
- .data          0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_clear_bss.o)
+ .data          0x00800060        0x4 BlowerRamping.o
+ .data          0x00800064        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_udivmodhi4.o)
+ .data          0x00800064        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
+ .data          0x00800064        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_copy_data.o)
+ .data          0x00800064        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_clear_bss.o)
  *(.data*)
  *(.rodata)
  *(.rodata*)
  *(.gnu.linkonce.d*)
-                0x00800062                . = ALIGN (0x2)
-                0x00800062                _edata = .
-                0x00800062                PROVIDE (__data_end, .)
+                0x00800064                . = ALIGN (0x2)
+                0x00800064                _edata = .
+                0x00800064                PROVIDE (__data_end, .)
 
-.bss            0x00800062       0x1d
-                0x00800062                PROVIDE (__bss_start, .)
+.bss            0x00800064       0x2b
+                0x00800064                PROVIDE (__bss_start, .)
  *(.bss)
- .bss           0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/../../../../avr/lib/avr25/crttn84.o
- .bss           0x00800062        0x0 BlowerRamping.o
- .bss           0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_udivmodhi4.o)
- .bss           0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
- .bss           0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_copy_data.o)
- .bss           0x00800062        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_clear_bss.o)
+ .bss           0x00800064        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/../../../../avr/lib/avr25/crttn84.o
+ .bss           0x00800064        0x1 BlowerRamping.o
+ .bss           0x00800065        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_udivmodhi4.o)
+ .bss           0x00800065        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_exit.o)
+ .bss           0x00800065        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_copy_data.o)
+ .bss           0x00800065        0x0 c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4.3/avr25\libgcc.a(_clear_bss.o)
  *(.bss*)
  *(COMMON)
- COMMON         0x00800062       0x1d BlowerRamping.o
-                0x00800062                aRunningAverageBuffer
-                0x00800076                ucOldDebouncedState
-                0x00800077                ucDebouncedState
-                0x00800078                ucDebounceIndex
-                0x00800079                ucADCMeanValue
-                0x0080007a                aKeyState
-                0x0080007f                PROVIDE (__bss_end, .)
-                0x000002c8                __data_load_start = LOADADDR (.data)
-                0x000002ca                __data_load_end = (__data_load_start + SIZEOF (.data))
+ COMMON         0x00800065       0x2a BlowerRamping.o
+                0x00800065                aRunningAverageBuffer
+                0x00800079                ucOldDebouncedState
+                0x0080007a                ucDebouncedState
+                0x0080007b                eRampingState
+                0x0080007c                ucDebounceIndex
+                0x0080007d                eMorseState
+                0x0080007e                ucTargetSpeed
+                0x0080007f                ucADCMeanValue
+                0x00800080                ucCurrentSpeed
+                0x00800081                ullRampingValue
+                0x00800089                aKeyState
+                0x0080008e                ucErrorCode
+                0x0080008f                PROVIDE (__bss_end, .)
+                0x000004b6                __data_load_start = LOADADDR (.data)
+                0x000004ba                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x0080007f        0x0
-                0x0080007f                PROVIDE (__noinit_start, .)
+.noinit         0x0080008f        0x0
+                0x0080008f                PROVIDE (__noinit_start, .)
  *(.noinit*)
-                0x0080007f                PROVIDE (__noinit_end, .)
-                0x0080007f                _end = .
-                0x0080007f                PROVIDE (__heap_start, .)
+                0x0080008f                PROVIDE (__noinit_end, .)
+                0x0080008f                _end = .
+                0x0080008f                PROVIDE (__heap_start, .)
 
 .eeprom         0x00810000        0x0
  *(.eeprom*)
@@ -349,32 +361,32 @@ LOAD c:/program files (x86)/atmel/avr tools/avr toolchain/bin/../lib/gcc/avr/4.4
                 0x00000000       0x20 BlowerRamping.o
 
 .debug_pubnames
-                0x00000000       0xf2
+                0x00000000      0x15d
  *(.debug_pubnames)
  .debug_pubnames
-                0x00000000       0xf2 BlowerRamping.o
+                0x00000000      0x15d BlowerRamping.o
 
-.debug_info     0x00000000      0x1e2
+.debug_info     0x00000000      0x2ea
  *(.debug_info)
- .debug_info    0x00000000      0x1e2 BlowerRamping.o
+ .debug_info    0x00000000      0x2ea BlowerRamping.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev   0x00000000       0xbc
+.debug_abbrev   0x00000000      0x107
  *(.debug_abbrev)
- .debug_abbrev  0x00000000       0xbc BlowerRamping.o
+ .debug_abbrev  0x00000000      0x107 BlowerRamping.o
 
-.debug_line     0x00000000      0x241
+.debug_line     0x00000000      0x3e5
  *(.debug_line)
- .debug_line    0x00000000      0x241 BlowerRamping.o
+ .debug_line    0x00000000      0x3e5 BlowerRamping.o
 
 .debug_frame    0x00000000       0x70
  *(.debug_frame)
  .debug_frame   0x00000000       0x70 BlowerRamping.o
 
-.debug_str      0x00000000      0x167
+.debug_str      0x00000000      0x270
  *(.debug_str)
- .debug_str     0x00000000      0x167 BlowerRamping.o
-                                0x19b (size before relaxing)
+ .debug_str     0x00000000      0x270 BlowerRamping.o
+                                0x2b6 (size before relaxing)
 
 .debug_loc      0x00000000       0xa2
  *(.debug_loc)
