@@ -42,7 +42,7 @@
 // defines
 #define MAX_ADC_HIST    (20)        // running average over n samples
 #define MAX_KEY_CHECKS	(5)			// number of equal key samples needed to count a key as debounced
-#define RAMP_TIME_TICKS (30000UL)   // number of 1ms timer ticks to ramp from current speed to target speed
+#define RAMP_TIME_TICKS (10000UL)   // number of 1ms timer ticks to ramp from current speed to target speed
 
 typedef enum eState
 {

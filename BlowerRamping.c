@@ -1,11 +1,24 @@
 /*
 
+Main source file for blower ramping board
+Software written for a ATTINY84 with internal RC Oscillator (8MHz)
+
+Converts a 3 bit error code from the SWM frequncy inverter to
+a morse style status code on a LED.
+
+Ramps up to preset speed (via potentiometer) in 10 seconds and down
+as well.
+
 */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+#include <util/delay.h>
 
 #include "BlowerRamping.h"
+
+const char aFWID[] PROGMEM = "Blower Ramping ATtiny84 V1.0 (c) MRU 20.10.2010 17:21 Uhr";
 
 // globals for ADC averaging
 volatile unsigned char aRunningAverageBuffer[MAX_ADC_HIST];
@@ -18,16 +31,19 @@ volatile unsigned char ucDebouncedState;			// debounced state of the switch
 volatile unsigned char ucOldDebouncedState;			// old state of the switch
 
 // globals for ramping
-volatile unsigned char ucTargetSpeed;
-volatile unsigned char ucCurrentSpeed;
-volatile unsigned long long ullRampingValue;
+volatile unsigned char ucTargetSpeed;               // 8 bit speed value (0-100%)
+volatile unsigned char ucCurrentSpeed;              // 8 bit speed value (0-100%)
+
+volatile unsigned long long ullRampingValue;        // accumulator for integer arithmetics
+volatile unsigned long long ullRampingTargetValue;  // target speed 
+volatile long long llIncrement;                     // delta per 1ms step 
 
 // error indicator (morse code)
 volatile unsigned char ucErrorCode;
 
 // state enums
-eStateType eRampingState;
-eMorseStateType eMorseState;
+volatile eStateType eRampingState;
+volatile eMorseStateType eMorseState;
 
 // main loop
 
@@ -39,10 +55,42 @@ int main()
     eRampingState = eRampedDown;
     eMorseState = eMorsePause;
 
+    OCR0B = 0;
+
+    // wait 10ms to get a stable mean ADC
+    _delay_ms(10.0);
+
+    // set parameters
+    ucCurrentSpeed = 0;
+    ucTargetSpeed = ucADCMeanValue;
+
+    ullRampingTargetValue = RAMP_TIME_TICKS * (unsigned long long)ucTargetSpeed;
+    ullRampingValue = RAMP_TIME_TICKS * (unsigned long long)ucCurrentSpeed;
+
+    llIncrement = (long long)(ucTargetSpeed-ucCurrentSpeed);
+
     // main loop
     while(1)
     {
-        // 
+        // check states
+
+        // if we are in ramped down state, master enable is off
+        if(eRampingState == eRampedDown)
+            PORT_SWM_EN = PORT_SWM_EN | _BV(BIT_SWM_EN);
+
+        // if we are ramping up, it would be wise to have the SWM enabled...
+        // SWM is low active
+        if(eRampingState == eRampingUp)
+            PORT_SWM_EN = PORT_SWM_EN & ~(_BV(BIT_SWM_EN));
+
+        // we are running at desired speed, let SWM enable active
+        if(eRampingState == eRampedUp)
+            PORT_SWM_EN = PORT_SWM_EN & ~(_BV(BIT_SWM_EN));
+
+        // we are ramping down, external enable is already off,
+        // but we have to keep SWM enable active till full stop of motor
+        if(eRampingState == eRampingDown)
+            PORT_SWM_EN = PORT_SWM_EN & ~(_BV(BIT_SWM_EN));
     };
 };
 
@@ -59,6 +107,10 @@ void InitHardware(void)
     // external status is output
     DDR_LED_EXSTAT = DDR_LED_EXSTAT | _BV(BIT_LED_EXSTAT);
     PORT_LED_EXSTAT = PORT_LED_EXSTAT & ~_BV(BIT_LED_EXSTAT);  // ext. stat off
+
+    // SWM enable pin is output
+    DDR_SWM_EN = DDR_SWM_EN | _BV(BIT_SWM_EN);
+    PORT_SWM_EN = PORT_SWM_EN | _BV(BIT_SWM_EN);  // SWM enable off (is active low)
 
     // PWM pin is output
     DDR_PWM = DDR_PWM | _BV(BIT_PWM);
@@ -116,6 +168,50 @@ ISR(TIM1_COMPA_vect)
     static unsigned int uiMorseDelay = MORSE_SYNC_PAUSE;
     static unsigned char ucCode = 0;
 
+    if(eRampingState == eRampingUp)
+    {
+        if(OCR0B == ucADCMeanValue)
+        {
+            eRampingState = eRampedUp;
+        }
+        else
+        {
+            // add delta
+            ullRampingValue = ullRampingValue + llIncrement;
+
+            // clip delta if greater then target
+            if(ullRampingValue > ullRampingTargetValue)
+                ullRampingValue = ullRampingTargetValue;
+
+            // convert to DAC range
+            OCR0B = (unsigned char)(ullRampingValue / RAMP_TIME_TICKS);
+        }
+    };
+    
+    if(eRampingState == eRampingDown)
+    {
+        if(OCR0B == 0)
+        {
+            eRampingState = eRampedDown;
+        }
+        else
+        {
+            // add delta
+            ullRampingValue = ullRampingValue - llIncrement;
+
+            // clip delta if greater then target
+            if(ullRampingValue < ullRampingTargetValue)
+                ullRampingValue = ullRampingTargetValue;
+
+            // convert to DAC range
+            OCR0B = (unsigned char)(ullRampingValue / RAMP_TIME_TICKS);
+        };        
+    };
+
+    // in ramped up state we have direct control via the potentiometer
+    if(eRampingState == eRampedUp)
+        OCR0B = ucADCMeanValue;
+
     // read in error pins from SWM controller
     // we need only the lower 3 bits
     ucErrorCode = PINB & 0x07; 
@@ -123,7 +219,7 @@ ISR(TIM1_COMPA_vect)
     // ==== CPU LED blink code below ====
     if(!(uiBlinkDelay--))
     {
-        PORT_LED_CPU = PIN_LED_CPU ^ _BV(BIT_LED_CPU);
+        PORT_LED_CPU = PORT_LED_CPU ^ _BV(BIT_LED_CPU);
         uiBlinkDelay = 500;
     };
 
@@ -252,9 +348,7 @@ ISR(ADC_vect)
     };
 
     // update average
-    ucADCMeanValue = (unsigned char)(uiSumm / MAX_ADC_HIST);
-    OCR0B = ucADCMeanValue;
-        
+    ucADCMeanValue = (unsigned char)(uiSumm / MAX_ADC_HIST);        
 }
 
 
@@ -289,7 +383,79 @@ void DebounceKeys(void)
         // check if it was a low to high transition
         if(ucDebouncedState & _BV(BIT_EN_INP))
         {
-//            PORT_LED_EXSTAT = PORT_LED_EXSTAT ^ _BV(BIT_LED_EXSTAT);  // ext. stat off            
+            // transition from eRampedDown to eRampingUp
+            if(eRampingState == eRampedDown)
+            {
+                // ramp to current set point
+                ucTargetSpeed = ucADCMeanValue;
+
+                // from current speed
+                ucCurrentSpeed = OCR0B;
+
+                // calculate step sizes
+                ullRampingTargetValue = RAMP_TIME_TICKS * (unsigned long long)ucTargetSpeed;
+                ullRampingValue = RAMP_TIME_TICKS * (unsigned long long)ucCurrentSpeed;
+
+                llIncrement = (long long)(ucTargetSpeed-ucCurrentSpeed);
+
+                eRampingState = eRampingUp;
+            }
+            else
+            // transition from eRampingDown to eRampingUp
+            if(eRampingState == eRampingDown)
+            {
+                // ramp to current set point
+                ucTargetSpeed = ucADCMeanValue;
+
+                // from current speed
+                ucCurrentSpeed = OCR0B;
+
+                // calculate step sizes
+                ullRampingTargetValue = RAMP_TIME_TICKS * (unsigned long long)ucTargetSpeed;
+                ullRampingValue = RAMP_TIME_TICKS * (unsigned long long)ucCurrentSpeed;
+
+                llIncrement = (long long)(ucTargetSpeed-ucCurrentSpeed);
+                eRampingState = eRampingUp;
+            };
+        };
+
+        // suspect it was a high to low transistion then...
+        if(!(ucDebouncedState & _BV(BIT_EN_INP)))
+        {
+            if(eRampingState == eRampingUp)
+            {
+                // ramp to zero
+                ucTargetSpeed = 0;
+
+                // from current speed
+                ucCurrentSpeed = OCR0B;
+
+                // calculate step sizes
+                ullRampingTargetValue = RAMP_TIME_TICKS * (unsigned long long)ucTargetSpeed;
+                ullRampingValue = RAMP_TIME_TICKS * (unsigned long long)ucCurrentSpeed;
+
+                llIncrement = (long long)(ucCurrentSpeed-ucTargetSpeed);
+
+                eRampingState = eRampingDown;
+            }
+            else
+            if(eRampingState == eRampedUp)
+            {
+                // ramp to zero
+                ucTargetSpeed = 0;
+
+                // from current speed
+                ucCurrentSpeed = OCR0B;
+
+                // calculate step sizes
+                ullRampingTargetValue = RAMP_TIME_TICKS * (unsigned long long)ucTargetSpeed;
+                ullRampingValue = RAMP_TIME_TICKS * (unsigned long long)ucCurrentSpeed;
+
+                llIncrement = (long long)(ucCurrentSpeed-ucTargetSpeed);
+
+                eRampingState = eRampingDown;
+            };
         };
     };
 }
+
